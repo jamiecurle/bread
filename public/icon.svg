@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="0" fill="#ffffff"/>
+  <!-- loaf body -->
+  <g transform="translate(256 268)">
+    <path d="M -168 60
+             C -168 -52 -96 -120 0 -120
+             C 96 -120 168 -52 168 60
+             C 168 86 150 100 120 100
+             L -120 100
+             C -150 100 -168 86 -168 60 Z"
+          fill="#de9b54"/>
+    <!-- crust top highlight -->
+    <path d="M -150 30
+             C -150 -44 -86 -104 0 -104
+             C 86 -104 150 -44 150 30"
+          fill="none" stroke="#c9863f" stroke-width="10" stroke-linecap="round" opacity="0.5"/>
+    <!-- slashes -->
+    <g stroke="#7a4a1e" stroke-width="13" stroke-linecap="round" opacity="0.8">
+      <line x1="-78" y1="-40" x2="-44" y2="26"/>
+      <line x1="-18" y1="-58" x2="16"  y2="22"/>
+      <line x1="44"  y1="-52" x2="78"  y2="20"/>
+    </g>
+    <!-- base line -->
+    <rect x="-168" y="84" width="336" height="16" rx="8" fill="#7a4a1e" opacity="0.18"/>
+  </g>
+</svg>
