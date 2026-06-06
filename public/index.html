@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <title>Bread Calculator</title>
+        <style>
+            :root {
+                --ink: #1e1e1e;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            html,
+            body {
+                margin: 0;
+                background: #ffffff;
+                color: var(--ink);
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+                    Arial, sans-serif;
+                -webkit-text-size-adjust: 100%;
+            }
+            body {
+                min-height: 100dvh;
+                display: flex;
+                justify-content: center;
+                padding: clamp(1.5rem, 4vw, 4rem);
+            }
+
+            /* ---- Flip card ---- */
+            .scene {
+                width: 100%;
+                max-width: 40rem;
+                perspective: 2000px;
+            }
+            .card {
+                position: relative;
+                width: 100%;
+                transform-style: preserve-3d;
+                transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .card.flipped {
+                transform: rotateY(180deg);
+            }
+            .face {
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+            }
+            /* Back sits on top of front, pre-rotated so it reads correctly when flipped. */
+            .face.back {
+                position: absolute;
+                inset: 0;
+                transform: rotateY(180deg);
+            }
+            /* While at rest on the front, ignore the (hidden) back for height/clicks. */
+            .card:not(.flipped) .face.back {
+                pointer-events: none;
+            }
+
+            /* ---- Flip button ---- */
+            .flip {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4em;
+                margin-bottom: clamp(1.5rem, 4vw, 2.2rem);
+                border: 3px solid var(--ink);
+                border-radius: 999px;
+                background: transparent;
+                color: var(--ink);
+                font: inherit;
+                font-size: clamp(1.1rem, 4vw, 1.4rem);
+                font-weight: 700;
+                padding: 0.5em 1.1em;
+                cursor: pointer;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .flip:active {
+                background: var(--ink);
+                color: #fff;
+            }
+
+            /* ---- Input block ---- */
+            .field {
+                margin-bottom: clamp(2rem, 6vw, 3.5rem);
+            }
+            .field label {
+                display: block;
+                font-size: clamp(1.5rem, 5vw, 2.2rem);
+                font-weight: 700;
+                margin-bottom: 0.5em;
+            }
+            .inputwrap {
+                display: flex;
+                align-items: center;
+                gap: 0.4em;
+                border: 4px solid var(--ink);
+                border-radius: 1rem;
+                padding: 0.3em 0.6em;
+                cursor: text;
+                transition: box-shadow 0.12s ease;
+            }
+            .inputwrap:focus-within {
+                box-shadow: 0 0 0 6px rgba(30, 30, 30, 0.15);
+            }
+            .inputwrap::after {
+                content: "breads";
+                font-size: clamp(1.4rem, 5vw, 2rem);
+                font-weight: 600;
+                opacity: 0.55;
+                white-space: nowrap;
+            }
+            #count {
+                flex: 1;
+                min-width: 0;
+                width: 100%;
+                border: 0;
+                outline: 0;
+                background: transparent;
+                color: var(--ink);
+                font: inherit;
+                font-size: clamp(3.5rem, 16vw, 6rem);
+                font-weight: 800;
+                text-align: left;
+                padding: 0;
+                -moz-appearance: textfield;
+            }
+            #count::placeholder {
+                color: var(--ink);
+                opacity: 0.25;
+            }
+            #count::-webkit-outer-spin-button,
+            #count::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            /* ---- Mix sections ---- */
+            .mix + .mix {
+                margin-top: clamp(2rem, 6vw, 3.5rem);
+            }
+            .mix h2 {
+                font-size: clamp(1.4rem, 5vw, 2rem);
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                margin: 0 0 0.6em;
+                opacity: 0.55;
+            }
+            .row {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 0.25em 0;
+            }
+            .row .name {
+                font-size: clamp(2rem, 8vw, 3rem);
+                font-weight: 600;
+            }
+            .row .amount {
+                font-size: clamp(2.4rem, 11vw, 4rem);
+                font-weight: 800;
+                font-variant-numeric: tabular-nums;
+                white-space: nowrap;
+            }
+            .row .amount .unit {
+                font-size: 0.45em;
+                font-weight: 600;
+                opacity: 0.55;
+                margin-left: 0.15em;
+            }
+
+            /* ---- Instructions ---- */
+            .steps {
+                list-style: none;
+                counter-reset: step;
+                margin: 0;
+                padding: 0;
+            }
+            .steps li,
+            p {
+                counter-increment: step;
+                display: flex;
+                gap: 0.6em;
+                font-size: clamp(1.5rem, 6vw, 2.2rem);
+                font-weight: 600;
+                line-height: 1.3;
+                padding: 0.5em 0;
+                border-top: 2px solid rgba(30, 30, 30, 0.12);
+            }
+            .steps li::before {
+                content: counter(step);
+                flex: none;
+                min-width: 1.6em;
+                height: 1.6em;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 999px;
+                background: var(--ink);
+                color: #fff;
+                font-size: 0.8em;
+                font-weight: 800;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="scene">
+            <div class="card" id="card">
+                <!-- FRONT: calculator -->
+                <section class="face front" aria-hidden="false">
+                    <button class="flip" type="button" data-flip>
+                        Instructions &rarr;
+                    </button>
+
+                    <div class="field">
+                        <label for="count">How many breads?</label>
+                        <label class="inputwrap" for="count">
+                            <input
+                                id="count"
+                                type="number"
+                                inputmode="decimal"
+                                step="0.5"
+                                min="0"
+                                value="1"
+                                placeholder="1"
+                                autocomplete="off"
+                            />
+                        </label>
+                    </div>
+
+                    <section class="mix">
+                        <h2>First mix</h2>
+                        <div class="row">
+                            <span class="name">Yeast</span
+                            ><span class="amount" data-out="yeast"></span>
+                        </div>
+                        <div class="row">
+                            <span class="name">Water</span
+                            ><span class="amount" data-out="water"></span>
+                        </div>
+                        <div class="row">
+                            <span class="name">Flour</span
+                            ><span class="amount" data-out="flour1"></span>
+                        </div>
+                    </section>
+
+                    <section class="mix">
+                        <h2>Second mix</h2>
+                        <div class="row">
+                            <span class="name">Flour</span
+                            ><span class="amount" data-out="flour2"></span>
+                        </div>
+                        <div class="row">
+                            <span class="name">Salt</span
+                            ><span class="amount" data-out="salt"></span>
+                        </div>
+                    </section>
+                </section>
+
+                <!-- BACK: instructions -->
+                <section class="face back" aria-hidden="true">
+                    <button class="flip" type="button" data-flip>
+                        &larr; Calculator
+                    </button>
+                    <p>
+                        The aim is not to overthink this. Bread is forgiving,
+                        especially flatbread. It's also very easy. If you want
+                        to eat the bread straight away, just leave out the
+                        yeast. Ideally though, add yeast and give it at least an
+                        hour.
+                    </p>
+                    <ol class="steps">
+                        <li>
+                            First mix: combine yeast and water. Mix well. You're
+                            doing this to ensure the yeast is mixed into the
+                            water.
+                        </li>
+                        <li>
+                            Add the first batch of flour and wet batter this
+                            further protects the yeast from the salt.
+                        </li>
+                        <li>
+                            Second mix: Easy. flour on top and create a little
+                            divvet. Put the salt in the divvet. Now mix
+                            everything together with a spoon. Don't worry about
+                            the salt and the yeast, it'll be fine.
+                        </li>
+                        <li>
+                            Ideally give it a knead about one hour before use
+                            and shape into portions
+                        </li>
+                        <li>
+                            Great, this is now ready to make a flat bread, a
+                            pizza base or a ciabatta.
+                        </li>
+                        <li>
+                            A flat iron surface makes the best flatbread.
+                            Stainless steel next.
+                        </li>
+                    </ol>
+                </section>
+            </div>
+        </div>
+
+        <script>
+            // Base amounts per single bread, taken from the printed chart.
+            const BASE = {
+                yeast: { per: 1, decimals: 1 },
+                water: { per: 68.3, decimals: 0 },
+                flour1: { per: 31.7, decimals: 0 },
+                flour2: { per: 68.3, decimals: 0 },
+                salt: { per: 3.2, decimals: 0 },
+            };
+
+            const input = document.getElementById("count");
+            const outs = {};
+            document
+                .querySelectorAll("[data-out]")
+                .forEach((el) => (outs[el.dataset.out] = el));
+
+            function render() {
+                const n = parseFloat(input.value);
+                const count = Number.isFinite(n) && n > 0 ? n : 0;
+                for (const key in BASE) {
+                    const { per, decimals } = BASE[key];
+                    const clean = parseFloat(
+                        (per * count).toFixed(decimals),
+                    ).toString();
+                    outs[key].innerHTML = `${clean}<span class="unit">g</span>`;
+                }
+            }
+            input.addEventListener("input", render);
+            render();
+
+            // Flip
+            const card = document.getElementById("card");
+            document
+                .querySelectorAll("[data-flip]")
+                .forEach((btn) =>
+                    btn.addEventListener("click", () =>
+                        card.classList.toggle("flipped"),
+                    ),
+                );
+        </script>
+    </body>
+</html>
